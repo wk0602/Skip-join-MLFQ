@@ -48,7 +48,7 @@ class RequestGenerator(threading.Thread): # 用户线程，继承自threading.Th
                 if count == 0:
                     count += 1
                     continue
-# 将数据集中每行的第一个元素作为输入长度，第二个元素作为输出长度
+        # 将数据集中每行的第一个元素作为输入长度，第二个元素作为输出长度
                 prompt_length_list.append(row[0])
                 output_length_list.append(row[1])
                 
@@ -84,7 +84,15 @@ class SkipJoinMLFQScheduler:
 
     def getNewRequest(self, request: Request):
         # Todo: 处理缓冲区中新到达的request，根据他们的输入长度放入多级队列中
-        pass
+        first_iter_time = request.first_iter_time # 获取该请求第一次迭代的推理时间
+
+        # 根据第一次迭代的推理时间确定优先级
+        queue_index = 0 # 初始化
+        for i in range(len(self.quantum_list)):
+            if first_iter_time > self.quantum_list[i]: # 这个队列放不下
+                queue_index = queue_index + 1 # 放入下一级队列
+            else: # 这个队列可以放下
+                break # 跳出循环
     
     def demoteRequest(self, job):
         # Todo: 将完成了推理但还没生成完毕的请求放入下一级队列
