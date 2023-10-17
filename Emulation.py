@@ -109,7 +109,9 @@ class SkipJoinMLFQScheduler:
     
     def getInferenceJob(self):
         # Todo: 返回在最高优先级的队列中的队首请求
-        pass
+        for q in self.multi_level_priority_queue:
+            if not q.empty():
+                return q.get()
         
 # 推理线程
 def run(scheduler):
