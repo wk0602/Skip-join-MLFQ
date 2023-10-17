@@ -96,7 +96,16 @@ class SkipJoinMLFQScheduler:
     
     def demoteRequest(self, job):
         # Todo: 将完成了推理但还没生成完毕的请求放入下一级队列
-        pass
+        current_priority = job.priority # 获取当前优先级
+        if current_priority == len(self.multi_level_priority_queue) - 1: # 已经是最低优先级
+            return
+        
+        #从当前队列中删除job
+        self.multi_level_priority_queue[current_priority].remove(job)
+
+        #将job放入下一级队列
+        job.priority = current_priority + 1
+        self.multi_level_priority_queue[current_priority + 1].put(job)
     
     def getInferenceJob(self):
         # Todo: 返回在最高优先级的队列中的队首请求
