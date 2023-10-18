@@ -4,7 +4,7 @@ import numpy as np
 import queue
 import csv
 
-JOB_NUM = 100  # 发送请求的个数
+JOB_NUM = 99  # 发送请求的个数
 
 # 在opt-1.3B上的实验数据 单位: ms
 #大概表示了Figure 4的图像
@@ -96,6 +96,7 @@ class SkipJoinMLFQScheduler:
             if first_iter_time > self.quantum_list[i]: # 这个队列放不下
                 queue_index = queue_index + 1 # 放入下一级队列
             else: # 这个队列可以放下
+                print("put request %d in queue %d" % (request.j_id, queue_index))
                 break # 跳出循环
     
     def demoteRequest(self, job):
@@ -116,12 +117,14 @@ class SkipJoinMLFQScheduler:
         for q in self.multi_level_priority_queue:
             if not q.empty():
                 return q.get()
-        
 # 推理线程
 def run(scheduler):
     while scheduler.executed != JOB_NUM: # 挨个请求执行直到所有请求都完成推理
+        if request_queue.empty(): # 请求队列为空
+            time.sleep(0.1) # 等待0.1s
         for i in range(request_queue.qsize()):
             req = request_queue.get() # 获取请求
+            print("get request %d" % req.j_id)
             scheduler.getNewRequest(req) # 将请求放入多级队列中
 
         job = scheduler.getInferenceJob() # 获取最高优先级队列中的队首请求
