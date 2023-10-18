@@ -115,19 +115,19 @@ class SkipJoinMLFQScheduler:
         
 # 推理线程
 def run(scheduler):
-    while scheduler.executed != JOB_NUM:
-        for i in range(request_queue.qsize())
-            req = request_queue.get()
-            scheduler.getNewRequest(req)
+    while scheduler.executed != JOB_NUM: # 挨个请求执行直到所有请求都完成推理
+        for i in range(request_queue.qsize()):
+            req = request_queue.get() # 获取请求
+            scheduler.getNewRequest(req) # 将请求放入多级队列中
 
-        job = scheduler.getInferenceJob()
+        job = scheduler.getInferenceJob() # 获取最高优先级队列中的队首请求
 
-        if job.iter_count == 0:
-            iter_time = job.first_iter_time
+        if job.iter_count == 0: # 第一次迭代
+            iter_time = job.first_iter_time # 获取第一次迭代的推理时间
         else:
-            iter_time = job.next_iter_time
+            iter_time = job.next_iter_time # 获取之后每次迭代的推理时间
 
-        args = [iter_time, job, scheduler]
+        args = [iter_time, job, scheduler] # 将参数打包
         # 调用模拟推理线程
         temp_thread = thread_pool.submit(lambda p: simulate_forward(*p), args)
 
@@ -136,30 +136,30 @@ def simulate_forward(iteration_time, job, scheduler):
     
     iteration_num = scheduler.quantum_list[job.priority]  # 获取当前任务在这次推理中需要执行多少轮
     
-    if iteration_num >= job.output_length - job.iter_count:
-        iteration_num = job.output_length - job.iter_count
+    if iteration_num >= job.output_length - job.iter_count: # 这次推理可以完成整个请求
+        iteration_num = job.output_length - job.iter_count 
 
-        for i in range(iteration_num):
+        for i in range(iteration_num): # 模拟推理
             time.sleep(iteration_time / 1000)  # ms
-            job.iter_count += 1
+            job.iter_count += 1 # 迭代次数加一
 
-        jct = time.time() - job.create_time                     
-        scheduler.ave_jct.append(jct)
+        jct = time.time() - job.create_time # 计算jct               
+        scheduler.ave_jct.append(jct) # 将jct放入调度器的jct存储列表中
         
-        scheduler.executed += 1
+        scheduler.executed += 1 # 已经完成的请求数量加一
         
     else:
-        for i in range(iteration_num):
+        for i in range(iteration_num): 
             time.sleep(iteration_time / 1000)  # ms
-            job.iter_count += 1
+            job.iter_count += 1 # 迭代次数加一
 
-        scheduler.demoteRequest(job)
+        scheduler.demoteRequest(job) # 将完成了推理但还没生成完毕的请求放入下一级队列
 
 
 if __name__ == '__main__':
     # 定义并启动发送请求的用户线程
     generator = RequestGenerator(arrival_rate=arrival_rate)
-    generator.start()
+    generator.start() # 启动用户线程
     
     # 定义并启动调度器线程
     scheduler = SkipJoinMLFQScheduler(first_quantum=quantum, quantum_rate=quantum_rate, queue_num=queue_num)
