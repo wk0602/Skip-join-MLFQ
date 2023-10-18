@@ -2,6 +2,7 @@ import time
 import threading
 import numpy as np
 import queue
+import csv
 
 JOB_NUM = 100  # 发送请求的个数
 
@@ -17,6 +18,8 @@ p1 = np.poly1d(z1)
 
 z2 = np.polyfit(x, next_time, 1)
 p2 = np.poly1d(z2)
+
+request_queue = queue.Queue() # 创建请求队列
 
 class Request:  # 推理请求，理论上输出长度未知，但为仿真实验，需要事先确定
     def __init__(self, j_id, prompt_length, output_length):
@@ -41,9 +44,10 @@ class RequestGenerator(threading.Thread): # 用户线程，继承自threading.Th
         output_length_list = []
         
         # 此处为读取orca数据集中的数据来构造request，可自行修改路径
-        f = open('/simulation/orca_100k.csv', 'r')
+        f = open('Resource/Orca数据集.csv', 'r')
         with f:
             reader = csv.reader(f)
+            count = 0
             for row in reader:
                 if count == 0:
                     count += 1
