@@ -140,6 +140,7 @@ def simulate_forward(iteration_time, job, scheduler):
         iteration_num = job.output_length - job.iter_count 
 
         for i in range(iteration_num): # 模拟推理
+            print("job id: %d, iter: %d" % (job.j_id, job.iter_count))
             time.sleep(iteration_time / 1000)  # ms
             job.iter_count += 1 # 迭代次数加一
 
@@ -157,6 +158,11 @@ def simulate_forward(iteration_time, job, scheduler):
 
 
 if __name__ == '__main__':
+    # 参数设置
+    arrival_rate = 10
+    quantum = 6
+    quantum_rate = 4
+    queue_num = 4
     # 定义并启动发送请求的用户线程
     generator = RequestGenerator(arrival_rate=arrival_rate)
     generator.start() # 启动用户线程
