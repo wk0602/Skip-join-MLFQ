@@ -26,8 +26,8 @@ class Request:  # 推理请求，理论上输出长度未知，但为仿真实�
         self.j_id = j_id # 推理请求的id，唯一的标识每一个请求
         self.prompt_length = int(prompt_length) # 输入长度，int用于确保输入了整数
         self.output_length = int(output_length) # 输出长度，int用于确保输入了整数
-        self.first_iter_time = fit_first_iter_time(prompt_length) # 第一次迭代的推理时间,基于上面拟合的函数模型得出
-        self.next_iter_time  = fit_next_iter_time(prompt_length) # 之后每次迭代的推理时间,同样基于上面拟合的函数模型得出
+        self.first_iter_time = p1(self.prompt_length) # 第一次迭代的推理时间,基于上面拟合的函数模型得出
+        self.next_iter_time  = p2(self.prompt_length) # 之后每次迭代的推理时间,同样基于上面拟合的函数模型得出
         self.iter_count = 0 # 请求执行了几次迭代，iter_count==output_length时完成整个推理   
         self.priority = -1  # 请求目前处于第几级队列
         
