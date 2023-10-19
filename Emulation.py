@@ -3,7 +3,7 @@ import threading
 import numpy as np
 import queue
 import csv
-
+from concurrent.futures import ThreadPoolExecutor
 JOB_NUM = 99  # 发送请求的个数
 
 # 在opt-1.3B上的实验数据 单位: ms
@@ -135,6 +135,7 @@ def run(scheduler):
 
         args = [iter_time, job, scheduler] # 将参数打包
         # 调用模拟推理线程
+        thread_pool = ThreadPoolExecutor(max_workers=10)
         temp_thread = thread_pool.submit(lambda p: simulate_forward(*p), args)
 
 
