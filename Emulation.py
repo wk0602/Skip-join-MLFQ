@@ -96,8 +96,8 @@ class SkipJoinMLFQScheduler:
             if first_iter_time > self.quantum_list[i]: # 这个队列放不下
                 queue_index = queue_index + 1 # 放入下一级队列
             else: # 这个队列可以放下
-                print("put request %d in queue %d" % (request.j_id, queue_index))
                 break # 跳出循环
+        self.multi_level_priority_queue[queue_index].put(request)
     
     def demoteRequest(self, job):
         # Todo: 将完成了推理但还没生成完毕的请求放入下一级队列
@@ -124,7 +124,6 @@ def run(scheduler):
             time.sleep(0.1) # 等待0.1s
         for i in range(request_queue.qsize()):
             req = request_queue.get() # 获取请求
-            print("get request %d" % req.j_id)
             scheduler.getNewRequest(req) # 将请求放入多级队列中
 
         job = scheduler.getInferenceJob() # 获取最高优先级队列中的队首请求
