@@ -6,6 +6,8 @@ import csv
 from concurrent.futures import ThreadPoolExecutor
 import matplotlib.pyplot as plt
 
+lock = threading.Lock() # 创建锁
+
 JOB_NUM = 99  # 发送请求的个数
 
 # 在opt-1.3B上的实验数据 单位: ms
@@ -64,10 +66,11 @@ class RequestGenerator(threading.Thread): # 用户线程，继承自threading.Th
             output_ = output_length_list[j_id]
             input_ = prompt_length_list[j_id]
             request = Request(j_id, input_, output_)
+            lock.acquire()
             request_queue.put(request)
-
+            lock.release()
             j_id += 1
-            
+
             time.sleep(1 / self.arrival_rate) # 按照arrival rate控制请求发送速率
 
 
@@ -118,16 +121,22 @@ class SkipJoinMLFQScheduler:
         for q in self.multi_level_priority_queue:
             if not q.empty():
                 return q.get()
+        return 0
 # 推理线程
 def run(scheduler):
     while scheduler.executed != JOB_NUM: # 挨个请求执行直到所有请求都完成推理
         if request_queue.empty(): # 请求队列为空
             time.sleep(0.25) # 等待0.25s
+
         for i in range(request_queue.qsize()):
             req = request_queue.get() # 获取请求
             scheduler.getNewRequest(req) # 将请求放入多级队列中
-
+        
+        lock.acquire()
         job = scheduler.getInferenceJob() # 获取最高优先级队列中的队首请求
+        lock.release()
+        if job == 0: # 没有请求
+            continue
 
         if job.iter_count == 0: # 第一次迭代
             iter_time = job.first_iter_time # 获取第一次迭代的推理时间
@@ -160,7 +169,9 @@ def simulate_forward(iteration_time, job, scheduler):
         jct = time.time() - job.create_time # 计算jct               
         scheduler.ave_jct[job.j_id] = jct # 将jct放入调度器的jct存储列表中
         
+        lock.acquire()
         scheduler.executed += 1 # 已经完成的请求数量加一
+        lock.release()
         
     else:
         for i in range(iteration_num): 
@@ -173,7 +184,7 @@ def simulate_forward(iteration_time, job, scheduler):
 
 if __name__ == '__main__':
     # 参数设置
-    arrival_rate = 10
+    arrival_rate = 1
     quantum = 6
     quantum_rate = 4
     queue_num = 4
@@ -184,6 +195,4 @@ if __name__ == '__main__':
     # 定义并启动调度器线程
     scheduler = SkipJoinMLFQScheduler(first_quantum=quantum, quantum_rate=quantum_rate, queue_num=queue_num)
     run(scheduler)
-
-    print(10086)
     
