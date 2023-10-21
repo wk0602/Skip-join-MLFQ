@@ -110,6 +110,7 @@ class SkipJoinMLFQScheduler:
         # Todo: 将完成了推理但还没生成完毕的请求放入下一级队列
         current_priority = job.priority # 获取当前优先级
         if current_priority == len(self.multi_level_priority_queue) - 1: # 已经是最低优先级
+            self.multi_level_priority_queue[current_priority].put(job)
             return
 
         #将job放入下一级队列
@@ -126,7 +127,7 @@ class SkipJoinMLFQScheduler:
 def run(scheduler):
     while scheduler.executed != JOB_NUM: # 挨个请求执行直到所有请求都完成推理
         if request_queue.empty(): # 请求队列为空
-            time.sleep(0.25) # 等待0.25s
+            time.sleep(0.1) # 等待0.1s
 
         for i in range(request_queue.qsize()):
             req = request_queue.get() # 获取请求
@@ -150,7 +151,7 @@ def run(scheduler):
 
         print(scheduler.executed)
     
-    for index in scheduler.ave_jct:
+    for index in range(JOB_NUM - 1):
         print("job id: %d, jct: %f" % (index, scheduler.ave_jct[index]))
 
 
@@ -184,7 +185,7 @@ def simulate_forward(iteration_time, job, scheduler):
 
 if __name__ == '__main__':
     # 参数设置
-    arrival_rate = 1
+    arrival_rate = 10
     quantum = 6
     quantum_rate = 4
     queue_num = 4
