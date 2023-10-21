@@ -149,12 +149,6 @@ def run(scheduler):
         thread_pool = ThreadPoolExecutor(max_workers=3)
         temp_thread = thread_pool.submit(lambda p: simulate_forward(*p), args)
 
-        print(scheduler.executed)
-    
-    for index in range(JOB_NUM - 1):
-        print("job id: %d, jct: %f" % (index, scheduler.ave_jct[index]))
-
-
 def simulate_forward(iteration_time, job, scheduler):
     
     iteration_num = scheduler.quantum_list[job.priority]  # 获取当前任务在这次推理中需要执行多少轮
@@ -168,7 +162,7 @@ def simulate_forward(iteration_time, job, scheduler):
             print("job id: %d, iter: %d" % (job.j_id, job.iter_count))
 
         jct = time.time() - job.create_time # 计算jct               
-        scheduler.ave_jct[job.j_id] = jct # 将jct放入调度器的jct存储列表中
+        scheduler.ave_jct[job.j_id] = jct # 将jct放入调度器的jct存储字典中
         
         lock.acquire()
         scheduler.executed += 1 # 已经完成的请求数量加一
@@ -197,3 +191,23 @@ if __name__ == '__main__':
     scheduler = SkipJoinMLFQScheduler(first_quantum=quantum, quantum_rate=quantum_rate, queue_num=queue_num)
     run(scheduler)
     
+    # 输出每个请求的jct
+    for index in range(JOB_NUM):
+        print("job id: %d, jct: %f" % (index, scheduler.ave_jct[index]))
+    
+    # 计算并输出平均jct
+    total_jct = sum(scheduler.ave_jct.values())
+    average_jct = total_jct / JOB_NUM
+    print(f"Average JCT: {average_jct}")
+
+    # 绘制jct分布图
+    job_ids = range(JOB_NUM)
+    jct_values = [scheduler.ave_jct[index] for index in job_ids]
+
+    plt.figure(figsize=(10, 5))
+    plt.bar(job_ids, jct_values, color='skyblue')
+    plt.xlabel('Job ID')
+    plt.ylabel('JCT (seconds)')
+    plt.title('Job Completion Time (JCT) for Each Job    Average JCT: {:.2f}   arrival_rate: {:.2f}'.format(average_jct, arrival_rate))
+    plt.show()
+
