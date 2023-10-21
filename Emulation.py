@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 lock = threading.Lock() # 创建锁
 
 JOB_NUM = 99  # 发送请求的个数
-nowJobnum = 0 # 当前已经发送的请求数量
 
 # 在opt-1.3B上的实验数据 单位: ms
 #大概表示了Figure 4的图像
@@ -72,7 +71,6 @@ class RequestGenerator(threading.Thread): # 用户线程，继承自threading.Th
             request_queue.put(request)
             lock.release()
             j_id += 1
-            nowJobnum += 1
 
             time.sleep(1 / self.arrival_rate) # 按照arrival rate控制请求发送速率
 
@@ -129,8 +127,6 @@ class SkipJoinMLFQScheduler:
 # 推理线程
 def run(scheduler):
     while scheduler.executed != JOB_NUM: # 挨个请求执行直到所有请求都完成推理
-        if request_queue.empty() and nowJobnum != JOB_NUM: # 请求队列为空
-            time.sleep(0.1) # 等待0.1s
 
         for i in range(request_queue.qsize()):
             req = request_queue.get() # 获取请求
@@ -162,7 +158,7 @@ def simulate_forward(iteration_time, job, scheduler):
         for i in range(iteration_num): # 模拟推理
             time.sleep(iteration_time / 1000)  # ms
             job.iter_count += 1 # 迭代次数加一
-            with open('3队列2rate.txt', 'a') as file:
+            with open('推理过程.txt', 'a') as file:
                 content = "job id: %d, iter: %d" % (job.j_id, job.iter_count)
                 file.write(content)
                 file.write('\n')
@@ -179,7 +175,7 @@ def simulate_forward(iteration_time, job, scheduler):
         for i in range(iteration_num): 
             time.sleep(iteration_time / 1000)  # ms
             job.iter_count += 1 # 迭代次数加一
-            with open('3队列2rate.txt', 'a') as file:
+            with open('推理过程.txt', 'a') as file:
                 content = "job id: %d, iter: %d" % (job.j_id, job.iter_count)
                 file.write(content)
                 file.write('\n')
