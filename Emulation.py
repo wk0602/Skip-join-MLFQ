@@ -159,7 +159,11 @@ def simulate_forward(iteration_time, job, scheduler):
         for i in range(iteration_num): # 模拟推理
             time.sleep(iteration_time / 1000)  # ms
             job.iter_count += 1 # 迭代次数加一
-            print("job id: %d, iter: %d" % (job.j_id, job.iter_count))
+            with open('output.txt', 'a') as file:
+                content = "job id: %d, iter: %d" % (job.j_id, job.iter_count)
+                file.write(content)
+                file.write('\n')
+            # print("job id: %d, iter: %d" % (job.j_id, job.iter_count))
 
         jct = time.time() - job.create_time # 计算jct               
         scheduler.ave_jct[job.j_id] = jct # 将jct放入调度器的jct存储字典中
@@ -172,7 +176,11 @@ def simulate_forward(iteration_time, job, scheduler):
         for i in range(iteration_num): 
             time.sleep(iteration_time / 1000)  # ms
             job.iter_count += 1 # 迭代次数加一
-            print("job id: %d, iter: %d" % (job.j_id, job.iter_count))
+            with open('output.txt', 'a') as file:
+                content = "job id: %d, iter: %d" % (job.j_id, job.iter_count)
+                file.write(content)
+                file.write('\n')
+            # print("job id: %d, iter: %d" % (job.j_id, job.iter_count))
 
         scheduler.demoteRequest(job) # 将完成了推理但还没生成完毕的请求放入下一级队列
 
@@ -192,6 +200,7 @@ if __name__ == '__main__':
     run(scheduler)
     
     # 输出每个请求的jct
+    
     for index in range(JOB_NUM):
         print("job id: %d, jct: %f" % (index, scheduler.ave_jct[index]))
     
