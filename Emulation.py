@@ -77,7 +77,7 @@ class RequestGenerator(threading.Thread): # 用户线程，继承自threading.Th
 # Define class
 class SkipJoinMLFQScheduler:
 
-    def __init__(self, first_quantum=6, quantum_rate=4, queue_num=4):
+    def __init__(self, first_quantum=6, quantum_rate=2, queue_num=3):
         # super().__init__() ？
         self.quantum_list = [] # 每个队列的时间片大小序列
         self.multi_level_priority_queue = [] # 用列表存储多级队列
@@ -159,7 +159,7 @@ def simulate_forward(iteration_time, job, scheduler):
         for i in range(iteration_num): # 模拟推理
             time.sleep(iteration_time / 1000)  # ms
             job.iter_count += 1 # 迭代次数加一
-            with open('output.txt', 'a') as file:
+            with open('3队列2rate.txt', 'a') as file:
                 content = "job id: %d, iter: %d" % (job.j_id, job.iter_count)
                 file.write(content)
                 file.write('\n')
@@ -176,7 +176,7 @@ def simulate_forward(iteration_time, job, scheduler):
         for i in range(iteration_num): 
             time.sleep(iteration_time / 1000)  # ms
             job.iter_count += 1 # 迭代次数加一
-            with open('output.txt', 'a') as file:
+            with open('3队列2rate.txt', 'a') as file:
                 content = "job id: %d, iter: %d" % (job.j_id, job.iter_count)
                 file.write(content)
                 file.write('\n')
