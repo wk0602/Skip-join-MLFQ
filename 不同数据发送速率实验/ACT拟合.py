@@ -2,10 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # 五组实验arrival rate
-x = [5, 10, 15, 20, 25] 
+x = [2, 4, 6, 8, 10, 12] 
 
 # 每组对应的平均JCT  
-y = [17.07, 22.37, 24.50, 25.36, 26.20]
+y = [7.77, 7.90, 7.81, 7.86, 7.79, 7.73]
 
 fig, ax = plt.subplots()
 
@@ -19,6 +19,6 @@ plt.ylabel('Average JCT (s)')
 plt.title('Average JCT with Different Job Arrival Rate')
 
 ax.set_xlim(0, max(x) + 2)
-ax.set_ylim(10, max(y) + 2)
+ax.set_ylim(7, max(y) + 1)
 
 plt.show()

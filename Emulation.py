@@ -158,7 +158,7 @@ def simulate_forward(iteration_time, job, scheduler):
         for i in range(iteration_num): # 模拟推理
             time.sleep(iteration_time / 1000)  # ms
             job.iter_count += 1 # 迭代次数加一
-            with open('推理过程.txt', 'a') as file:
+            with open('arrival_rate12-3.txt', 'a') as file:
                 content = "job id: %d, iter: %d" % (job.j_id, job.iter_count)
                 file.write(content)
                 file.write('\n')
@@ -175,7 +175,7 @@ def simulate_forward(iteration_time, job, scheduler):
         for i in range(iteration_num): 
             time.sleep(iteration_time / 1000)  # ms
             job.iter_count += 1 # 迭代次数加一
-            with open('推理过程.txt', 'a') as file:
+            with open('arrival_rate12-3.txt', 'a') as file:
                 content = "job id: %d, iter: %d" % (job.j_id, job.iter_count)
                 file.write(content)
                 file.write('\n')
@@ -186,7 +186,7 @@ def simulate_forward(iteration_time, job, scheduler):
 
 if __name__ == '__main__':
     # 参数设置
-    arrival_rate = 10
+    arrival_rate = 12
     quantum = 6
     quantum_rate = 4
     queue_num = 4
@@ -201,12 +201,18 @@ if __name__ == '__main__':
     # 输出每个请求的jct
     
     for index in range(JOB_NUM):
-        print("job id: %d, jct: %f" % (index, scheduler.ave_jct[index]))
+        with open('arrival_rate12-3.txt', 'a') as file:
+            content = "job id: %d, jct: %f" % (index, scheduler.ave_jct[index])
+            file.write(content)
+            file.write('\n')
     
     # 计算并输出平均jct
     total_jct = sum(scheduler.ave_jct.values())
     average_jct = total_jct / JOB_NUM
-    print(f"Average JCT: {average_jct}")
+    with open('arrival_rate12-3.txt', 'a') as file:
+        content = "Average JCT: %f" % average_jct
+        file.write(content)
+        file.write('\n')
 
     # 绘制jct分布图
     job_ids = range(JOB_NUM)
