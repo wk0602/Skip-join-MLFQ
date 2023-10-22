@@ -83,38 +83,40 @@ class FCFSScheduler:
         self.ave_jct = {} # 存储每个请求的JCT
 
     def getNewRequest(self, request: Request):
-        FCFS_queue.append(request) # 将请求放入FCFS队列中
+        with lock:
+            FCFS_queue.append(request) # 将请求放入FCFS队列中
     
     def getInferenceJob(self):
-        if len(FCFS_queue) == 0:
-            return 0
-        else:
-            return FCFS_queue.popleft() # 获取FCFS队列中的队首请求
+        with lock:
+            if len(FCFS_queue) == 0:
+                return 0
+            else:
+                return FCFS_queue.popleft() # 获取FCFS队列中的队首请求
 
 # 推理线程
 def run(scheduler):
-    while scheduler.executed != JOB_NUM: # 挨个请求执行直到所有请求都完成推理
+    while scheduler.executed != JOB_NUM: # 挨个请求执行直到所有请求都完成推理  
         if request_queue.empty() and nownum != 99: # 如果请求队列为空，等待0.1s
             time.sleep(0.01)
-            continue
-        with lock:
-            for i in range(request_queue.qsize()):
-                req = request_queue.get() # 获取请求
-                scheduler.getNewRequest(req) # 将请求放入调度器中
+            continue 
+        for i in range(request_queue.qsize()):
+            req = request_queue.get() # 获取请求
+            scheduler.getNewRequest(req) # 将请求放入调度器中
         
-            job = scheduler.getInferenceJob()
-            if job == 0:
-                continue
+        job = scheduler.getInferenceJob()
+        
+        if job == 0:
+            continue
 
-            if job.iter_count == 0: # 第一次迭代
+        if job.iter_count == 0: # 第一次迭代
                 iter_time = job.first_iter_time # 获取第一次迭代的推理时间
-            else:
-                iter_time = job.next_iter_time # 获取之后每次迭代的推理时间
-            
-            args = [iter_time, job, scheduler] # 将参数打包
-            # 调用模拟推理线程
-            thread_pool = ThreadPoolExecutor(max_workers=3)
-            temp_thread = thread_pool.submit(lambda p: simulate_forward(*p), args)
+        else:
+            iter_time = job.next_iter_time # 获取之后每次迭代的推理时间
+
+        args = [iter_time, job, scheduler] # 将参数打包
+        # 调用模拟推理线程
+        thread_pool = ThreadPoolExecutor(max_workers=3)
+        temp_thread = thread_pool.submit(lambda p: simulate_forward(*p), args)
 
 def simulate_forward(iteration_time, job, scheduler):
     with lock:
@@ -127,8 +129,8 @@ def simulate_forward(iteration_time, job, scheduler):
                 file.write('\n')
             FCFS_queue.appendleft(job) # 塞回去继续推理
             
-            return
-        
+            return 0
+
         for i in range(job.output_length - 1): # 模拟推理
             time.sleep(iteration_time / 1000)  # ms
             job.iter_count += 1 # 迭代次数加一
@@ -141,8 +143,6 @@ def simulate_forward(iteration_time, job, scheduler):
         scheduler.ave_jct[job.j_id] = jct # 将jct放入调度器的jct存储字典中
         
         scheduler.executed += 1 # 已经完成的请求数量加一
-        print(scheduler.executed)
-        print(len(FCFS_queue))
 
 if __name__ == '__main__':
     # 定义并启动发送请求的用户线程
